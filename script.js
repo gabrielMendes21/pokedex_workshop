@@ -1,5 +1,4 @@
 const pokemonContainer = document.querySelector(".pokemon-container")
-
 const prevButton = document.querySelector(".prev")
 const nextButton = document.querySelector(".next")
 const pageSpan = document.querySelector(".page-index")
@@ -30,7 +29,43 @@ const colours = {
 	fairy: "#D685AD",
 }
 
+const searchPokemons = async () => {
+	const res = await fetch(
+		`https://pokeapi.co/api/v2/pokemon/?offset=$0&limit=0`
+	)
 
+	const json = await res.json()
+	max = json.count
+
+	let pokemons = await Promise.all(
+		json.results.map(async (pokemon) => {
+			const pokemonRes = await fetch(pokemon.url)
+			return pokemonRes.json()
+		})
+	)
+
+	search.oninput = () => {
+		const teste = pokemons.filter(pokemon => pokemon.name.includes(search.value))
+		console.log(teste)
+	}
+}
+
+const sortPokemons = (pokemons) => {
+	pokemons.sort((a, b) => {
+		const nameA = a.name.toUpperCase()
+		const nameB = b.name.toUpperCase()
+	  
+		if (nameA < nameB) {
+		  return -1
+		}
+		if (nameA > nameB) {
+		  return 1
+		}
+		return 0
+	  });
+	  
+	  return pokemons
+}
 
 async function getPokemons(offset, limit) {
 	pageSpan.innerHTML = page + 1
@@ -46,12 +81,15 @@ async function getPokemons(offset, limit) {
 	const json = await res.json()
 	max = json.count
 
-	const pokemons = await Promise.all(
+	let pokemons = await Promise.all(
 		json.results.map(async (pokemon) => {
 			const pokemonRes = await fetch(pokemon.url)
 			return pokemonRes.json()
 		})
 	)
+
+	searchPokemons(pokemons)
+	pokemons = sortPokemons(pokemons)
 
 	spinner.classList.add("hidden")
 	pageSpan.classList.remove("hidden")
